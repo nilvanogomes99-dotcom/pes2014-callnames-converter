@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PES 2014 PSP CallNames Converter V2.3</title>
+<style>
+:root{color-scheme:dark;--bg:#09111f;--panel:#121e32;--panel2:#192944;--line:#2a4163;--text:#eef4ff;--muted:#a8b8d2;--blue:#55a8ff;--green:#43d6a5;--yellow:#ffd16b;--red:#ff7185}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(850px 430px at 90% -5%,#1a3964 0%,transparent 62%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+.wrap{max-width:980px;margin:auto;padding:15px 12px 42px}.hero,.panel{border:1px solid var(--line);border-radius:17px;background:var(--panel);padding:17px;box-shadow:0 10px 30px #0002}
+.hero{background:linear-gradient(135deg,#172c4c,#111b2e)}.kicker{font-size:11px;letter-spacing:.14em;font-weight:900;color:var(--green)}h1{font-size:clamp(25px,6vw,36px);line-height:1.12;margin:7px 0}.sub{color:var(--muted);margin:8px 0 0}
+.row{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.btn{border:1px solid var(--line);border-radius:11px;background:#243957;color:var(--text);font-weight:750;padding:11px 14px;cursor:pointer;min-height:44px}.btn.primary{background:var(--blue);border-color:var(--blue);color:#06182b}.btn.green{background:#174c40;border-color:#287c68}.btn:disabled{opacity:.42;cursor:not-allowed}
+.drop{margin-top:14px;padding:24px 12px;text-align:center;border:2px dashed #49668e;border-radius:14px;background:#0b1729;color:var(--muted)}.drop strong{display:block;color:var(--text);font-size:17px}.drop.over{border-color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:13px}.panel h2{font-size:16px;margin:0 0 12px}.muted{color:var(--muted)}.empty{text-align:center;padding:22px 5px;color:var(--muted)}
+.file{display:flex;align-items:center;gap:8px;margin:8px 0}.file button{flex:1;min-width:0;text-align:left;overflow-wrap:anywhere}.pill{font-size:11px;font-weight:850;border-radius:30px;padding:5px 9px;background:#263e60;color:#c3e0ff;white-space:nowrap}.pill.good{background:#124337;color:#9af0d2}.pill.warn{background:#493b1d;color:#ffe3a0}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{background:var(--panel2);border-radius:10px;padding:10px}.stat small{display:block;color:var(--muted);font-size:11px}.stat b{display:block;overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.actions .btn{font-size:13px;padding:9px 11px}
+.notice{border-left:3px solid var(--yellow);background:#302817;color:#f8e6b9;padding:11px;border-radius:8px;font-size:13px;margin-top:12px}.notice.ok{border-color:var(--green);background:#102e2a;color:#baf5df}.notice.err{border-color:var(--red);background:#351d2a;color:#ffd2da}
+.progress{height:8px;background:#263752;border-radius:20px;overflow:hidden;margin:10px 0}.progress>div{height:100%;width:0;background:var(--green);transition:width .2s}
+.log{font:12px/1.55 ui-monospace,monospace;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto}
+table{width:100%;font-size:13px;border-collapse:collapse}td{padding:7px 3px;border-bottom:1px solid var(--line);vertical-align:top}td:first-child{width:42%;color:var(--muted)}code{color:#a8d6ff;overflow-wrap:anywhere}
+.hidden{display:none!important}footer{text-align:center;color:var(--muted);font-size:12px;margin:16px 0}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.wrap{padding:10px 9px 30px}.hero,.panel{padding:14px}.row .btn{flex:1}}
+</style>
+</head>
+<body><main class="wrap">
+<header class="hero">
+<div class="kicker">FERRAMENTA DE ÁUDIO • ANDROID / PSP</div>
+<h1>PES 2014 PSP<br>CallNames Converter V2.3</h1>
+<p class="sub">Analise ATRAC3 e ATRAC3+, extraia o fluxo compactado e tente decodificar o áudio para WAV PCM diretamente no navegador. O original nunca é alterado.</p>
+<div class="row"><button class="btn primary" id="open">＋ Abrir WAV / CallName</button><button class="btn" id="clear">Limpar</button><input id="files" type="file" accept=".wav,.wave,audio/*" multiple hidden></div>
+<div class="drop" id="drop"><strong>Toque para selecionar ou arraste os arquivos aqui</strong><span>Compatível com arquivos WAV de CallNames</span></div>
+</header>
+<div class="grid">
+<section class="panel"><h2>Arquivos carregados</h2><div id="list" class="empty">Nenhum arquivo carregado.</div></section>
+<section class="panel"><h2>Diagnóstico</h2><div id="diagnostic" class="empty">Selecione um arquivo para analisar.</div></section>
+<section class="panel"><h2>Decodificação para WAV PCM</h2>
+<p class="muted" style="font-size:13px;margin-top:0">A decodificação usa FFmpeg compilado para WebAssembly, carregado sob demanda. É necessário internet para baixar o motor na primeira utilização. Abra esta versão pelo endereço HTTPS do GitHub Pages, não pelo arquivo local.</p>
+<div class="row" style="margin-top:8px"><button class="btn primary" id="decode" disabled>Decodificar para WAV PCM</button></div>
+<div class="progress"><div id="bar"></div></div><div id="engineStatus" class="muted" style="font-size:12px">Motor não carregado.</div>
+<div id="decodeResult" class="notice">A conversão será executada no próprio navegador. Arquivos grandes podem exigir memória adicional.</div>
+</section>
+<section class="panel"><h2>Detalhes técnicos</h2><div id="details" class="empty">Aguardando arquivo.</div></section>
+<section class="panel" style="grid-column:1/-1"><h2>Registro</h2><div id="log" class="log">V2 pronta.</div></section>
+</div>
+<div class="notice" style="margin-top:13px"><b>Limitação importante:</b> esta versão decodifica para WAV PCM quando o FFmpeg WebAssembly aceitar o arquivo. Ela não gera ATRAC3/ATRAC3+ novo: o motor FFmpeg usado aqui não inclui codificador ATRAC3. Não é seguro trocar apenas o identificador do codec.</div>
+<footer>V2.3 • Preparada para hospedagem HTTPS no GitHub Pages • Processamento local • Nenhum arquivo é enviado a um servidor</footer>
+</main>
+<script>
+const $=s=>document.querySelector(s);let items=[],active=-1,ff=null,engineLoading=null;
+const logs=[];function log(s){logs.unshift(new Date().toLocaleTimeString()+'  '+s);$('#log').textContent=logs.slice(0,50).join('\n')}
+function ascii(b,o,n){return String.fromCharCode(...b.slice(o,o+n))}function u16(v,o){return v.getUint16(o,true)}function u32(v,o){return v.getUint32(o,true)}
+function hex(n){return '0x'+n.toString(16).toUpperCase().padStart(4,'0')}
+function guidLE(g){if(g.length!==16)return '';const h=x=>Array.from(x).map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();return [h(g.slice(0,4).reverse()),h(g.slice(4,6).reverse()),h(g.slice(6,8).reverse()),h(g.slice(8,10)),h(g.slice(10,16))].join('-')}
+function parse(buffer,name){const b=new Uint8Array(buffer),v=new DataView(buffer);if(b.length<12||ascii(b,0,4)!=='RIFF'||ascii(b,8,4)!=='WAVE')throw Error('Assinatura RIFF/WAVE inválida.');
+ let p=12,fmt=null,data=null,fact=null,chunks=[];while(p+8<=b.length){let id=ascii(b,p,4),sz=u32(v,p+4),st=p+8,en=Math.min(st+sz,b.length);chunks.push({id,sz,st,en});if(id==='fmt '&&sz>=16){let tag=u16(v,st);fmt={tag,channels:u16(v,st+2),rate:u32(v,st+4),byteRate:u32(v,st+8),align:u16(v,st+12),bits:u16(v,st+14),extra:b.slice(st+18,en),fmtSize:sz};}if(id==='data')data={st,sz,en};if(id==='fact'&&sz>=4)fact=u32(v,st);p=st+sz+(sz&1);if(!sz)break;}
+ if(!fmt||!data)throw Error('Chunk fmt ou data ausente.');let codec='Desconhecido',kind='unknown',guid='';if(fmt.tag===0x0270){codec='ATRAC3';kind='atrac3'}else if(fmt.tag===0xfffe){guid=guidLE(fmt.extra.slice(6,22));if(guid==='E923AABF-CB58-4471-A119-FFFA01E4CE62'){codec='ATRAC3+';kind='atrac3p'}else codec='WAVE_FORMAT_EXTENSIBLE'}return{name,buffer,bytes:b,fmt,data,fact,chunks,codec,kind,guid,size:b.length,duration:fact&&fmt.rate?fact/fmt.rate:(fmt.byteRate?data.sz/fmt.byteRate:null)}}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function add(files){[...files].forEach(async f=>{try{let r=parse(await f.arrayBuffer(),f.name);items.push(r);log('Analisado: '+r.name+' — '+r.codec);render();if(active<0)select(items.length-1)}catch(e){log('Erro '+f.name+': '+e.message)}})}
+function render(){if(!items.length){$('#list').className='empty';$('#list').textContent='Nenhum arquivo carregado.';return}$('#list').className='';$('#list').innerHTML=items.map((r,i)=>`<div class="file"><button class="btn" data-i="${i}">${i===active?'▶ ':''}${esc(r.name)}</button><span class="pill">${r.codec}</span></div>`).join('');$('#list').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>select(+b.dataset.i))}
+function select(i){active=i;let r=items[i];render();$('#decode').disabled=false;$('#diagnostic').innerHTML=`<span class="pill ${r.kind==='unknown'?'warn':'good'}">${r.codec}</span><div class="stats" style="margin-top:12px"><div class="stat"><small>Frequência</small><b>${r.fmt.rate.toLocaleString('pt-BR')} Hz</b></div><div class="stat"><small>Canais</small><b>${r.fmt.channels}</b></div><div class="stat"><small>Duração estimada</small><b>${r.duration?r.duration.toFixed(3)+' s':'Não informada'}</b></div><div class="stat"><small>Dados compactados</small><b>${r.data.sz.toLocaleString('pt-BR')} bytes</b></div></div><div class="actions"><button class="btn" id="extract">Extrair fluxo .AT3</button><button class="btn" id="copy">Copiar diagnóstico</button></div>`;
+ $('#details').innerHTML=`<table><tr><td>Tag de formato</td><td><code>${hex(r.fmt.tag)}</code></td></tr><tr><td>Codec</td><td>${r.codec}</td></tr><tr><td>GUID</td><td><code>${r.guid||'—'}</code></td></tr><tr><td>Taxa de bits</td><td>${r.fmt.bits}</td></tr><tr><td>Byte rate</td><td>${r.fmt.byteRate}</td></tr><tr><td>Block align</td><td>${r.fmt.align}</td></tr><tr><td>Chunk fmt</td><td>${r.fmt.fmtSize} bytes</td></tr><tr><td>Chunk fact</td><td>${r.fact??'—'}</td></tr><tr><td>Chunk data</td><td>${r.data.sz} bytes</td></tr><tr><td>Tamanho total</td><td>${r.size} bytes</td></tr></table>`;
+ $('#extract').onclick=()=>save(r.bytes.slice(r.data.st,r.data.en),r.name.replace(/\.[^.]+$/,'')+'.AT3','application/octet-stream');
+ $('#copy').onclick=()=>navigator.clipboard?.writeText(`${r.name}\n${r.codec}\n${r.fmt.rate} Hz, ${r.fmt.channels} canais\n${r.data.sz} bytes`).then(()=>log('Diagnóstico copiado.')).catch(()=>log('Área de transferência indisponível.'));
+ $('#decodeResult').className='notice';$('#decodeResult').textContent='Arquivo selecionado. Toque em “Decodificar para WAV PCM”.'}
+function save(data,name,type){let blob=new Blob([data],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+async function blobURL(url,mime){const response=await fetch(url);if(!response.ok)throw Error('Falha ao baixar componente: '+url);return URL.createObjectURL(new Blob([await response.arrayBuffer()],{type:mime}))}
+async function loadEngine(){if(ff)return ff;if(engineLoading)return engineLoading;engineLoading=(async()=>{
+ setStatus('Carregando FFmpeg e preparando Worker local…');
+ const ffmpegBase='https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd';
+ const workerURL=ffmpegBase+'/814.ffmpeg.js';
+ // Baixa o bundle do Worker e cria uma URL blob da própria página.
+ // Isso evita que o navegador tente iniciar um Worker diretamente no CDN
+ // a partir de uma página aberta com origem "null" (file://).
+ const wr=await fetch(workerURL);if(!wr.ok)throw Error('Não foi possível baixar o Worker FFmpeg ('+wr.status+').');
+ const workerBlob=URL.createObjectURL(new Blob([await wr.arrayBuffer()],{type:'text/javascript'}));
+ const NativeWorker=window.Worker;
+ window.Worker=function(url,options){const u=String(url);return new NativeWorker(u.includes('814.ffmpeg.js')?workerBlob:url,options)};
+ window.Worker.prototype=NativeWorker.prototype;
+ await new Promise((res,rej)=>{if(window.FFmpegWASM?.FFmpeg){res();return}let s=document.createElement('script');s.src=ffmpegBase+'/ffmpeg.js';s.onload=res;s.onerror=()=>rej(Error('Não foi possível carregar a biblioteca FFmpeg. Verifique a internet.'));document.head.append(s)});
+ if(!window.FFmpegWASM?.FFmpeg)throw Error('Biblioteca FFmpeg 0.12 não inicializou.');
+ const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+ const coreURL=await blobURL(base+'/ffmpeg-core.js','text/javascript');
+ const wasmURL=await blobURL(base+'/ffmpeg-core.wasm','application/wasm');
+ ff=new window.FFmpegWASM.FFmpeg();
+ ff.on('log',({message})=>{if(message)log(message)});
+ ff.on('progress',({progress})=>$('#bar').style.width=Math.max(0,Math.min(100,progress*100))+'%');
+ await ff.load({coreURL,wasmURL});
+ setStatus('Motor FFmpeg carregado com Worker local em blob.');
+ return ff
+})();try{return await engineLoading}catch(e){engineLoading=null;throw e}}
+function setStatus(s){$('#engineStatus').textContent=s}
+$('#decode').onclick=async()=>{let r=items[active];if(!r)return;$('#decode').disabled=true;$('#bar').style.width='0%';$('#decodeResult').className='notice';$('#decodeResult').textContent='Preparando decodificação…';try{let engine=await loadEngine();let inName='input_'+Date.now()+'.wav',outName='decoded_'+Date.now()+'.wav';await engine.writeFile(inName,new Uint8Array(r.buffer));setStatus('Decodificando '+r.codec+'…');await engine.exec(['-y','-i',inName,'-vn','-acodec','pcm_s16le',outName]);let out=await engine.readFile(outName);if(!out||out.length<44)throw Error('FFmpeg não gerou um WAV PCM válido.');save(out,outName.replace(/^decoded_/,'').replace(/\.wav$/, '')+'-PCM.wav','audio/wav');$('#decodeResult').className='notice ok';$('#decodeResult').textContent='Decodificação concluída. WAV PCM exportado. O arquivo original permanece intacto.';setStatus('Concluído.');log('WAV PCM exportado de '+r.name);try{await engine.deleteFile(inName);await engine.deleteFile(outName)}catch(_){}}catch(e){$('#decodeResult').className='notice err';$('#decodeResult').textContent='Falha na decodificação: '+(e?.message||String(e));setStatus('Falha. Consulte o registro.');log('Falha: '+e.message)}finally{$('#decode').disabled=false}};
+$('#open').onclick=()=>$('#files').click();$('#files').onchange=e=>{add(e.target.files);e.target.value=''};$('#drop').onclick=()=>$('#files').click();$('#drop').ondragover=e=>{e.preventDefault();$('#drop').classList.add('over')};$('#drop').ondragleave=()=>$('#drop').classList.remove('over');$('#drop').ondrop=e=>{e.preventDefault();$('#drop').classList.remove('over');add(e.dataTransfer.files)};
+$('#clear').onclick=()=>{items=[];active=-1;render();$('#diagnostic').className='empty';$('#diagnostic').textContent='Selecione um arquivo para analisar.';$('#details').className='empty';$('#details').textContent='Aguardando arquivo.';$('#decode').disabled=true;$('#log').textContent='Análise limpa.';logs.length=0};
+</script></body></html>
